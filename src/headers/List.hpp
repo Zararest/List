@@ -16,7 +16,7 @@ public:
 
     struct Iterator{
 
-        Iterator(const Node* new_node){ cur_node = new_node; }
+        Iterator(Node* new_node, Memory* new_container){ cur_node = new_node; cur_container = new_container;}
         Iterator(const Iterator& old_iter){ cur_node = old_iter.cur_node; }
         Iterator(Iterator&& rv_iter){ cur_node = rv_iter.cur_node; }
         ~Iterator() = default;
@@ -24,7 +24,7 @@ public:
         Iterator& operator =(const Iterator old_iter){ cur_node = old_iter.cur_node; }
         Iterator& operator =(Iterator&& rv_iter){ cur_node = rv_iter.cur_node; }
 
-        T& operator*() const { return cur_node->value; }
+        T& operator*() const { return *((T*)cur_container->get_ptr(cur_node->key)); }
 
         Iterator& operator++() { cur_node = cur_node->next; return *this; }  
         Iterator operator++(int) { Iterator tmp = *this; cur_node = cur_node->next; return tmp; }
@@ -35,6 +35,7 @@ public:
     private:
 
         Node* cur_node = nullptr;
+        Memory* cur_container = nullptr;
     };
 
     List(Memory* new_container);
@@ -45,12 +46,12 @@ public:
     List& operator =(const List& old_list) = delete;
     List& operator =(List&& rv_list) = delete;
 
-    Iterator begin(){ return Iterator(root); }
+    Iterator begin(){ return Iterator(root, memory_container); }
     Iterator end(){
 
         Node* tmp = root;
         while (tmp->next != nullptr) tmp = tmp->next;
-        return tmp;
+        return Iterator(tmp, memory_container);
     }
 
     void push_back(T new_value);
@@ -208,7 +209,7 @@ T List<T>::pop_front(){
         cur_node->next->prev = nullptr;
     }
 
-    ret_val = (T*)memory_container->get_ptr(root);
+    ret_val = (T*)memory_container->get_ptr(root->key);
     root = cur_node->next;
     memory_container->delete_ptr(cur_node->key);
     delete cur_node;
