@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Memory.h"
+#include <fstream>
 
 template <typename T>
 class List{
@@ -58,6 +59,7 @@ public:
     void push_front(T new_value);
     T pop_back();
     T pop_front();
+    void dump_graphviz(const char* file_name);
 
 private:
 
@@ -163,6 +165,7 @@ void List<T>::push_front(T new_value){
     new_root->key = memory_container->get_memory(sizeof(T));
     *((T*)memory_container->get_ptr(new_root->key)) = new_value; 
 
+    if (root != nullptr){ root->prev = new_root; }
     root = new_root;
 }
 
@@ -215,4 +218,30 @@ T List<T>::pop_front(){
     delete cur_node;
 
     return *ret_val;
+}
+
+template <typename T>
+void List<T>::dump_graphviz(const char* file_name){
+
+    std::ofstream out(file_name);
+    Iterator it = begin();
+    T tmp;
+
+    out << "digraph Dump{" << std::endl;
+    out << "node[color=""red"",fontsize=14, style=""filled""]" << std::endl;
+    
+    while (it != end()){
+
+        tmp = *it;
+        out << '"' << &*it << '"' << " [label=\"" << tmp << "\" fillcolor=""lightgrey""]" << std::endl;
+        out << '"' <<  &*it << "\" -> \"" ;
+
+        it++;
+        out << &*it << '"' << std::endl;
+    } 
+
+    tmp = *it;
+    out << '"' << &*it << '"' << " [label=\"" << tmp << "\" fillcolor=""lightgrey""]" << std::endl;
+    
+    out << '}' << std::endl;
 }
